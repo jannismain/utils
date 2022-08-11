@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+command=$1
+uppercase=$(echo "$command" | tr 'a-z' 'A-Z' | tr '-' '_')
+
+echo "To enable shell completion for $command in the current shell, run the following command:\n"
+echo "eval \"\$(_""$uppercase""_COMPLETE=zsh_source $command)\""
+
+echo "\nTo generate a script you can source in the future, run:\n"
+echo "_""$uppercase""_COMPLETE=zsh_source $command > ~/.$command-complete.zsh"
