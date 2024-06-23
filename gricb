@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby -w
+
+# git rebase interactive current branch (gricb)
+output=`git log main..  --oneline | wc -l`
+number_of_commits=output[/\d+/]
+`git rebase -i HEAD~#{number_of_commits}`
