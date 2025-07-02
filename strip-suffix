@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# List all the suffixes you want to strip (exact match)
+suffixes=("SomeSuffix")
+
+for f in "$@"; do
+  [[ -f "$f" ]] || continue
+  dir=$(dirname -- "$f")
+  base=$(basename -- "$f")
+  fname=${f##*/} # filename.ext
+  name=${base%.*} # name without extension
+  ext=${fname##*.}
+
+  for suf in "${suffixes[@]}"; do
+    if [[ $name == *"$suf" ]]; then
+      # remove the suffix
+      newname=${name%$suf}
+      # strip ALL trailing spaces, dashes or underscores
+      newname="${newname%"${newname##*[![:space:]]}"}"
+      newname=${newname%%+([ _-])}
+      newname="${newname%"${newname##*[![:space:]]}"}"
+      printf "Renaming '%s' to '%s/%s.%s'\n" "$fname" "$dir" "$newname" "$ext"
+      mv -f -- "$f" "$dir/$newname.$ext"
+      break
+    # else
+    #  printf "Not Renaming '%s' → Suffix not found: '%s'\n" "$name" "$suf"
+    fi
+  done
+done
