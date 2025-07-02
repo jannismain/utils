@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# List all the suffixes you want to strip (exact match)
-suffixes=("SomeSuffix")
+
+# load suffixes from SUFFIXES_TO_STRIP env var (comma-sep), or fall back to defaults
+if [[ -n "$SUFFIXES_TO_STRIP" ]]; then
+  IFS=',' read -r -a suffixes <<< "$SUFFIXES_TO_STRIP"
+else
+  suffixes=("SomeSuffix")
+fi
 
 for f in "$@"; do
   [[ -f "$f" ]] || continue
