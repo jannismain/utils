@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+CHARACTER_GOAL = 10_000
+
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+def bold(s: str) -> str:
+    return f"{BOLD}{s}{RESET}"
+
+def count_characters(fp = 'article.md', character_goal: int = CHARACTER_GOAL, verbose: bool = False) -> int:
+    with open(fp) as f:
+        content = f.read()
+
+    import re
+
+    # remove markdown comments from content
+    content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL | re.MULTILINE)
+
+    # remove markdown heading prefixes
+    content = re.sub(r'^#+\s*', '', content, flags=re.MULTILINE)
+
+    # remove link targets (only keep link label)
+    content = re.sub(r'!{0,1}\[([^\]]+)\]\([^\)]+\)', r'\1', content)
+
+    # remove anonymous footnote references and keep only footnote content
+    content = re.sub(r'\[\^[^\]]+\]:{0,1}\s', '', content)
+
+    # remove multiple consecutive newlines
+    content = re.sub(r'\n{2,}', '\n\n', content)
+    
+    if verbose:
+        print(content, end='\n\n')
+    print(f"{BOLD}-> {len(content)} / {character_goal} characters ({len(content) / character_goal:.2%}){RESET}")
+
+    return len(content)
+
+
+if __name__ == "__main__":
+    import sys
+    import glob
+    f, goal, verbose = None, None, None
+    if '-v' in sys.argv:
+        verbose = True
+        sys.argv.remove('-v')
+    while len(sys.argv) > 1:
+        if (arg := sys.argv[1]).isdigit():
+            goal = int(arg)
+        elif arg.endswith('.md'):
+            f = sys.argv[1]
+        sys.argv.pop(1)
+
+    if f is None:
+        f = next(f for f in glob.glob('*.md'))
+    count_characters(f, character_goal=goal or CHARACTER_GOAL, verbose=verbose or False)
