@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+
 CHARACTER_GOAL = 10_000
 
 BOLD = "\033[1m"
@@ -8,7 +10,7 @@ RESET = "\033[0m"
 def bold(s: str) -> str:
     return f"{BOLD}{s}{RESET}"
 
-def count_characters(fp = 'article.md', character_goal: int = CHARACTER_GOAL, verbose: bool = False) -> int:
+def count_characters(fp = 'article.md', character_goal: int = CHARACTER_GOAL, verbose: bool = False, write_to_file: bool = False) -> int:
     with open(fp) as f:
         content = f.read()
 
@@ -28,9 +30,11 @@ def count_characters(fp = 'article.md', character_goal: int = CHARACTER_GOAL, ve
 
     # remove multiple consecutive newlines
     content = re.sub(r'\n{2,}', '\n\n', content)
-    
+
     if verbose:
         print(content, end='\n\n')
+    if write_to_file:
+        Path(fp).with_suffix('.cleaned.txt').write_text(content)
     print(f"{BOLD}-> {len(content)} / {character_goal} characters ({len(content) / character_goal:.2%}){RESET}")
 
     return len(content)
@@ -39,10 +43,22 @@ def count_characters(fp = 'article.md', character_goal: int = CHARACTER_GOAL, ve
 if __name__ == "__main__":
     import sys
     import glob
-    f, goal, verbose = None, None, None
+    f, goal, verbose, write_to_file = None, None, None, None
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print("Count characters in a markdown file, ignoring markdown syntax.", end="\n\n")
+        print(f"Usage: writing_goal [-v] [-w] [-h] [character_goal] [file.md]", end="\n\n")
+        print("Examples:")
+        print("  writing_goal")
+        print("  writing_goal 12000")
+        print("  writing_goal draft.md")
+        print("  writing_goal -v -w 8000 draft.md")
+        exit(0)
     if '-v' in sys.argv:
         verbose = True
         sys.argv.remove('-v')
+    if '-w' in sys.argv:
+        write_to_file = True
+        sys.argv.remove('-w')
     while len(sys.argv) > 1:
         if (arg := sys.argv[1]).isdigit():
             goal = int(arg)
@@ -52,4 +68,5 @@ if __name__ == "__main__":
 
     if f is None:
         f = next(f for f in glob.glob('*.md'))
-    count_characters(f, character_goal=goal or CHARACTER_GOAL, verbose=verbose or False)
+
+    count_characters(f, character_goal=goal or CHARACTER_GOAL, verbose=verbose or False, write_to_file=write_to_file or False)
